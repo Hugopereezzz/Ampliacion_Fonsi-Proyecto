@@ -1,0 +1,66 @@
+socket.service.ts — añadir al final de la clase
+
+
+enviarTexto(texto: string): void {
+  this.socket.emit('contar-palabras', { texto });
+}
+
+onResultadoTexto(): Observable<{ resultado: string }> {
+  return new Observable(observer => {
+    const handler = (data: any) => observer.next(data);
+    this.socket.on('resultado-palabras', handler);
+    return () => this.socket.off('resultado-palabras', handler);
+  });
+}
+
+
+
+
+server.js — añadir dentro del bloque io.on('connection', socket)
+
+
+socket.on('contar-palabras', ({ texto }) => {
+  const palabras = texto.trim().split(/\s+/).length;
+  const resultado = `${texto.toUpperCase()} — ${palabras} palabras`;
+  socket.emit('resultado-palabras', { resultado });
+});
+
+
+global-chat.ts — añadir propiedades y lógica
+// Añadir estas propiedades
+textoInput: string = '';
+resultadoServidor: string = '';
+
+LO PRIMERO AÑADIRLO DENTRO DEL NGONINIT(){}
+ngOnInit() {
+  this.ss.onResultadoTexto().subscribe(data => {
+    this.resultadoDelSocket = data.resultado;
+  });
+}
+
+LUEGO METER ESTE METODO
+
+enviarTexto(): void {
+  if (this.textoInput.trim()) {
+    this.socketService.enviarTexto(this.textoInput);
+  }
+}
+
+
+
+
+global-chat.html — añadir el botón y el resultado
+
+
+<input [(ngModel)]="textoInput" placeholder="Escribe algo..." />
+<button (click)="enviarTexto()">Enviar al servidor</button>
+<p *ngIf="resultadoServidor">{{ resultadoServidor }}</p>
+
+
+
+
+
+
+invertir palabras 
+
+meter la palabra en un array y leerlo del reves.
